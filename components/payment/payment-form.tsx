@@ -18,7 +18,7 @@ import type { PaymentSuccessResponse } from "@/types/payment"
 import toast from "react-hot-toast"
 
 const paymentSchema = z.object({
-    recipientAccountNumber: z.string().min(10, "Account number must be at least 10 digits"),
+    recipientAccountNumber: z.string().min(9, "Account number must be at least 9 digits"),
     amount: z.number().min(0.01, "Amount must be greater than 0"),
     currency: z.enum(["USD", "KHR"]),
     paymentMethod: z.string().min(1, "Please select a payment method"),
@@ -32,7 +32,7 @@ type PaymentFormProps = {
     initialData?: Partial<PaymentFormData>
 }
 
-const mockAccountNumber = "ACC001234567892"
+const mockAccountNumber = "001001001" // Mock account number for demonstration
 
 export function PaymentForm({ onSuccess, initialData }: PaymentFormProps) {
     const [isLoading, setIsLoading] = useState(false)
@@ -159,8 +159,8 @@ export function PaymentForm({ onSuccess, initialData }: PaymentFormProps) {
                             <SelectValue placeholder="Select currency" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="USD">USD - US Dollar ($)</SelectItem>
-                            <SelectItem value="KHR">KHR - Cambodian Riel (៛)</SelectItem>
+                            <SelectItem value="USD">USD - ($)</SelectItem>
+                            <SelectItem value="KHR">KHR - (៛)</SelectItem>
                         </SelectContent>
                     </Select>
                     {errors.currency && <p className="text-sm text-destructive">{errors.currency.message}</p>}

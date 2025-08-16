@@ -1,100 +1,42 @@
 "use client"
 
-import React from "react"
+import React, {useEffect, useState} from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { formatCurrency, formatRelativeTime } from "@/utils/format"
+import {formatCurrency, formatDate, formatDateTransaction, formatRelativeTime} from "@/utils/format"
 import type { Transaction } from "@/types/transaction"
-import { useTransactionsWS } from "@/hooks/use-transactions-ws"
 import { Wifi, WifiOff } from "lucide-react"
-
-// Mock initial data - would come from API
-const mockInitialTransactions: Transaction[] = [
-  {
-    id: "txn_001",
-    accountNumber: "1234567890123456",
-    recipientAccountNumber: "9876543210987654",
-    amount: 1250.0,
-    currency: "USD",
-    status: "completed",
-    type: "debit",
-    description: "Payment to vendor",
-    reference: "REF-2024-001",
-    timestamp: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
-    paymentMethod: "digital_wallet",
-  },
-  {
-    id: "txn_002",
-    accountNumber: "2345678901234567",
-    recipientAccountNumber: "1234567890123456",
-    amount: 750.5,
-    currency: "USD",
-    status: "pending",
-    type: "credit",
-    description: "Salary deposit",
-    reference: "REF-2024-002",
-    timestamp: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
-    paymentMethod: "bank_transfer",
-  },
-  {
-    id: "txn_003",
-    accountNumber: "3456789012345678",
-    recipientAccountNumber: "8765432109876543",
-    amount: 2100.0,
-    currency: "USD",
-    status: "failed",
-    type: "debit",
-    description: "Invoice payment",
-    reference: "REF-2024-003",
-    timestamp: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
-    paymentMethod: "instant_transfer",
-  },
-  {
-    id: "txn_004",
-    accountNumber: "4567890123456789",
-    recipientAccountNumber: "7654321098765432",
-    amount: 500.0,
-    currency: "USD",
-    status: "completed",
-    type: "debit",
-    description: "Utility payment",
-    reference: "REF-2024-004",
-    timestamp: new Date(Date.now() - 45 * 60 * 1000).toISOString(),
-    paymentMethod: "digital_wallet",
-  },
-]
+import {transactionService} from "@/lib/api-client";
+import toast from "react-hot-toast";
 
 const statusColors = {
-  completed: "bg-success/10 text-success border-success/20",
-  pending: "bg-secondary/10 text-secondary border-secondary/20",
-  failed: "bg-destructive/10 text-destructive border-destructive/20",
-  cancelled: "bg-muted text-muted-foreground border-border",
+    INITIATED: "bg-success/10 text-success border-success/20",
+  COMPLETED: "bg-success/10 text-success border-success/20",
+  PENDING: "bg-secondary/10 text-secondary border-secondary/20",
+  FAILED: "bg-destructive/10 text-destructive border-destructive/20",
+  CANCELLED: "bg-muted text-muted-foreground border-border",
 }
 
 export const TransactionsTable = React.memo(() => {
-  const { transactions, isConnected } = useTransactionsWS(mockInitialTransactions)
+    const [transactions, setTransactions] = useState<Transaction[]>([])
+    // Fetch accounts from API on mount
+    useEffect(() => {
+        async function fetchTransactions() {
+            try {
+                const transactions = await transactionService.getAllTransactions()
+                setTransactions(transactions)
+                console.log("TRANSACTIONS", transactions)
+            } catch (error: any) {
+                toast.error("Failed to load transactions")
+            }
+        }
+
+        void fetchTransactions()
+    }, [])
+
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center justify-between">
-          <span>Recent Transactions</span>
-          <div className="flex items-center gap-2">
-            {isConnected ? (
-              <div className="flex items-center gap-1 text-success text-sm">
-                <Wifi className="h-4 w-4" />
-                <span>Live</span>
-              </div>
-            ) : (
-              <div className="flex items-center gap-1 text-muted-foreground text-sm">
-                <WifiOff className="h-4 w-4" />
-                {/*<span>Offline</span>*/}
-              </div>
-            )}
-          </div>
-        </CardTitle>
-      </CardHeader>
-
       <CardContent className="p-0">
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -110,7 +52,7 @@ export const TransactionsTable = React.memo(() => {
             <tbody>
               {transactions.map((transaction, index) => (
                 <tr
-                  key={transaction.id}
+                  key={transaction.transactionId}
                   className={`border-b border-border last:border-0 hover:bg-muted/50 ${
                     index === 0 ? "animate-pulse bg-primary/5" : ""
                   }`}
@@ -118,14 +60,14 @@ export const TransactionsTable = React.memo(() => {
                   <td className="p-4">
                     <div>
                       <div className="font-medium text-foreground">{transaction.description}</div>
-                      <div className="text-sm text-muted-foreground font-mono">{transaction.reference}</div>
+                      <div className="text-sm text-muted-foreground font-mono">{transaction.transactionReference}</div>
                     </div>
                   </td>
                   <td className="p-4">
                     <div
-                      className={`font-medium ${transaction.type === "credit" ? "text-success" : "text-foreground"}`}
+                      className={`font-medium ${transaction.transactionType === "CREDIT" ? "text-success" : "text-foreground"}`}
                     >
-                      {transaction.type === "credit" ? "+" : "-"}
+                      {transaction.transactionType === "CREDIT" ? "+" : "-"}
                       {formatCurrency(transaction.amount, transaction.currency)}
                     </div>
                   </td>
@@ -140,7 +82,7 @@ export const TransactionsTable = React.memo(() => {
                     </span>
                   </td>
                   <td className="p-4">
-                    <span className="text-sm text-muted-foreground">{formatRelativeTime(transaction.timestamp)}</span>
+                    <span className="text-sm text-muted-foreground">{formatDateTransaction(transaction.updatedAt)}</span>
                   </td>
                 </tr>
               ))}

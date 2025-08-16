@@ -1,9 +1,21 @@
 export const formatCurrency = (amount: number, currency = "USD"): string => {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency,
-    minimumFractionDigits: 2,
-  }).format(amount)
+    if (currency === "KHR") {
+        // KHR usually has no decimal, use "km-KH" locale, symbol ៛
+        return new Intl.NumberFormat("km-KH", {
+            style: "currency",
+            currency: "KHR",
+            currencyDisplay: "narrowSymbol",
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0,
+        }).format(amount)
+    }
+    // Default to USD, symbol $
+    return new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: "USD",
+        currencyDisplay: "narrowSymbol",
+        minimumFractionDigits: 2,
+    }).format(amount)
 }
 
 export const formatAccountNumber = (accountNumber: string): string => {
@@ -20,6 +32,20 @@ export const formatDate = (dateString: string): string => {
     hour: "2-digit",
     minute: "2-digit",
   }).format(new Date(dateString))
+}
+
+export const formatDateTransaction = (dateArray: number[]): string => {
+    // Convert [year, month, day, hour, minute, second, ms] to Date
+    // Note: month is 1-based in input, but 0-based in JS Date
+    const [year, month, day, hour, minute, second, ms] = dateArray
+    const date = new Date(year, month - 1, day, hour, minute, second, ms)
+    return new Intl.DateTimeFormat("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+    }).format(date)
 }
 
 export const formatRelativeTime = (dateString: string): string => {
