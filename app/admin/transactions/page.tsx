@@ -6,7 +6,7 @@ import {Input} from "@/components/ui/input"
 import {Badge} from "@/components/ui/badge"
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select"
 import {Download, Filter, Search} from "lucide-react"
-import {formatCurrency, formatDateTransaction} from "@/utils/format"
+import {formatAccountNumber, formatCurrency, formatDateTransaction} from "@/utils/format"
 import type {Transaction} from "@/types/transaction"
 import React, {useEffect, useState} from "react"
 import {transactionService} from "@/lib/api-client";
@@ -97,7 +97,50 @@ export default function TransactionsPage() {
                             </SelectContent>
                         </Select>
 
-                        <Button variant="outline">
+                        <Button
+                            variant="outline"
+                            onClick={() => {
+                                const headers = [
+                                    "Transaction Reference",
+                                    "Account",
+                                    "Amount",
+                                    "Currency",
+                                    "Method",
+                                    "Status",
+                                    "Type",
+                                    "Time",
+                                ];
+                                const rows = filteredTransactions.map((t) => [
+                                    t.transactionReference,
+                                    t.transactionType === "DEBIT" ? t.fromAccountNumber : t.toAccountNumber,
+                                    t.amount,
+                                    t.currency,
+                                    t.paymentMethod.replace("_", " "),
+                                    t.status,
+                                    t.transactionType,
+                                    formatDateTransaction(t.updatedAt),
+                                ]);
+                                const csvContent =
+                                    [headers, ...rows]
+                                        .map((row) =>
+                                            row
+                                                .map((field) =>
+                                                    `"${String(field).replace(/"/g, '""')}"`
+                                                )
+                                                .join(",")
+                                        )
+                                        .join("\n");
+                                const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+                                const url = URL.createObjectURL(blob);
+                                const link = document.createElement("a");
+                                link.href = url;
+                                link.setAttribute("download", "transactions.csv");
+                                document.body.appendChild(link);
+                                link.click();
+                                document.body.removeChild(link);
+                                URL.revokeObjectURL(url);
+                            }}
+                        >
                             <Download className="mr-2 h-4 w-4"/>
                             Export
                         </Button>
@@ -130,8 +173,11 @@ export default function TransactionsPage() {
                                         </div>
                                     </td>
                                     <td className="p-4">
-                                        <div
-                                            className="text-sm text-muted-foreground font-mono">{transaction.fromAccountNumber}</div>
+                                        <div className="text-sm text-muted-foreground font-mono">
+                                            {transaction.transactionType === "DEBIT"
+                                                ? formatAccountNumber(transaction.fromAccountNumber)
+                                                : formatAccountNumber(transaction.toAccountNumber)}
+                                        </div>
                                     </td>
                                     <td className="p-4">
                                         <div

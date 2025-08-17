@@ -52,8 +52,8 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 </AvatarFallback>
               </Avatar>
               <div>
-                <p className="font-medium text-sidebar-foreground">Admin User</p>
-                <p className="text-sm text-sidebar-foreground/70">System Administrator</p>
+                <p className="font-medium text-sidebar-foreground">Admin</p>
+                <p className="text-sm text-sidebar-foreground/70">Administrator</p>
               </div>
             </div>
           </div>

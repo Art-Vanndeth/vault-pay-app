@@ -10,8 +10,6 @@ import {WebSocketService} from "@/lib/websocket";
 
 export default function NotificationsPage() {
     const [notifications, setNotifications] = useState<Notification[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
 
     // Helper functions for notification actions
     const unreadCount = notifications.filter(n => !n.isRead).length;

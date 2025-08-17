@@ -6,6 +6,8 @@ import type { Notification } from '@/types/notification';
 export class WebSocketService {
   private client: Client;
   private subscriptionCallback: ((notification: Notification) => void) | null = null;
+  private connectCallback: (() => void) | null = null;
+  private disconnectCallback: (() => void) | null = null;
 
   constructor(wsUrl: string = 'http://localhost:8888/ws') {
 
@@ -13,10 +15,16 @@ export class WebSocketService {
         webSocketFactory: () => new SockJS(wsUrl),
       onConnect: () => {
         console.log('Connected to WebSocket');
+        this.connectCallback?.();
         this.subscribe();
+      },
+      onDisconnect: () => {
+        console.log('Disconnected from WebSocket');
+        this.disconnectCallback?.();
       },
       onStompError: (frame) => {
         console.error('STOMP error', frame);
+        this.disconnectCallback?.();
       }
     });
   }
@@ -53,6 +61,14 @@ export class WebSocketService {
     }
   }
 
+  onConnect(callback: () => void): void {
+    this.connectCallback = callback;
+  }
+
+  onDisconnect(callback: () => void): void {
+    this.disconnectCallback = callback;
+  }
+
   private subscribe(): void {
     if (this.subscriptionCallback) {
       this.client.subscribe(`/topic/notifications`, (message) => {
@@ -60,5 +76,9 @@ export class WebSocketService {
         this.subscriptionCallback!(notification);
       });
     }
+  }
+
+  get isConnected(): boolean {
+    return this.client.connected;
   }
 }

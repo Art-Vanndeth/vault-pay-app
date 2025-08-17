@@ -19,9 +19,8 @@ export const formatCurrency = (amount: number, currency = "USD"): string => {
 }
 
 export const formatAccountNumber = (accountNumber: string): string => {
-  // Format as XXXX-XXXX-XXXX-XXXX
-    return accountNumber
-  // return accountNumber.replace(/(\d{4})(?=\d)/g, "$1-")
+    // Format as XXX XXX XXX
+    return accountNumber.replace(/(\d{3})(?=\d)/g, "$1 ")
 }
 
 export const formatDate = (dateString: string): string => {

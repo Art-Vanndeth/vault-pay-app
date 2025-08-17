@@ -28,7 +28,7 @@ type QRGenerateFormData = z.infer<typeof qrGenerateSchema>
 
 const mockAccountNumber = "1234567890123456"
 
-const QR_EXPIRATION_MINUTES = 15 // Dynamic QR codes expire in 15 minutes
+const QR_EXPIRATION_MINUTES = 1 // Dynamic QR codes expire in 15 minutes
 
 export function QRCodeGenerator() {
   const [qrData, setQrData] = useState<string | null>(null)

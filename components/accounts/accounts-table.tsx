@@ -7,7 +7,7 @@ import {Input} from "@/components/ui/input"
 import {Badge} from "@/components/ui/badge"
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select"
 import {Search, Filter, SnowflakeIcon as Freeze, Play} from "lucide-react"
-import {formatCurrency, formatDate} from "@/utils/format"
+import {formatAccountNumber, formatCurrency, formatDate} from "@/utils/format"
 import type {Account} from "@/types/account"
 import {accountService} from "@/lib/api-client"
 import toast from "react-hot-toast"
@@ -130,7 +130,7 @@ export function AccountsTable() {
                                 <td className="p-4">
                                     <div>
                                         <div className="font-medium text-foreground">{account.accountHolderName}</div>
-                                        <div className="text-sm text-muted-foreground font-mono">{account.accountNumber}</div>
+                                        <div className="text-sm text-muted-foreground font-mono">{formatAccountNumber(account.accountNumber)}</div>
                                     </div>
                                 </td>
                                 <td className="p-4">

@@ -27,12 +27,23 @@ export function Navbar({ onMenuClick, showMenuButton = false }: NavbarProps) {
             <Menu className="h-5 w-5" />
           </Button>
         )}
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-            <span className="text-primary-foreground font-bold text-sm">SP</span>
+          <div
+              className="flex items-center gap-2 cursor-pointer"
+              onClick={() => window.location.assign('/')}
+              role="button"
+              tabIndex={0}
+              aria-label="Go to home"
+              onKeyPress={e => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                      window.location.assign('/');
+                  }
+              }}
+          >
+              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                  <span className="text-primary-foreground font-bold text-sm">VP</span>
+              </div>
+              <span className="font-semibold text-lg text-foreground">VaultPay</span>
           </div>
-          <span className="font-semibold text-lg text-foreground">SecurePay</span>
-        </div>
       </div>
 
       <div className="flex items-center gap-3">
@@ -52,8 +63,8 @@ export function Navbar({ onMenuClick, showMenuButton = false }: NavbarProps) {
           <DropdownMenuContent className="w-56" align="end" forceMount>
             <DropdownMenuLabel className="font-normal">
               <div className="flex flex-col space-y-1">
-                <p className="text-sm font-medium leading-none">John Doe</p>
-                <p className="text-xs leading-none text-muted-foreground">john.doe@example.com</p>
+                <p className="text-sm font-medium leading-none">Ekko</p>
+                <p className="text-xs leading-none text-muted-foreground">ekko@lol.com</p>
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
