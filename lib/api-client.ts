@@ -93,8 +93,12 @@ export const notificationService = {
         return response.data
     },
 
+    // async markAsRead(id: string, status: boolean) {
+    //     await apiClient.patch(`/api/notifications/${id}/status`, {read: status})
+    // },
+
     async markAsRead(id: string, status: boolean) {
-        await apiClient.patch(`/api/notifications/${id}/status`, {read: status})
+        await apiClient.patch(`/api/notifications/${id}/status?read=${status}`)
     },
 
     async removeNotification(id: string) {
