@@ -13,15 +13,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 import { formatRelativeTime } from "@/utils/format"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { notificationService } from "@/lib/api-client"
@@ -32,8 +27,7 @@ import type { Notification } from "@/types/notification"
 export const NotificationBell = React.memo(() => {
     const [notifications, setNotifications] = useState<Notification[]>([])
     const [isConnected, setIsConnected] = useState(false)
-    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
-    const [notificationToDelete, setNotificationToDelete] = useState<string | null>(null)
+    const [deletePopoverOpen, setDeletePopoverOpen] = useState<string | null>(null)
 
     // Simple unread count - decreases only when notifications are actually marked as read
     const unreadCount = notifications.filter(n => !n.isRead).length
@@ -52,34 +46,29 @@ export const NotificationBell = React.memo(() => {
         }
     }
 
-    // Handle delete button click - open confirmation dialog
+    // Handle delete button click - open confirmation popover
     const handleDeleteClick = (id: string, e: React.MouseEvent) => {
         e.stopPropagation()
-        setNotificationToDelete(id)
-        setDeleteDialogOpen(true)
+        setDeletePopoverOpen(id)
     }
 
     // Confirm delete notification
-    const confirmDeleteNotification = async () => {
-        if (!notificationToDelete) return
-
+    const confirmDeleteNotification = async (id: string) => {
         try {
-            await notificationService.removeNotification(notificationToDelete)
+            await notificationService.removeNotification(id)
             setNotifications(notifications =>
-                notifications.filter(n => n.id !== notificationToDelete)
+                notifications.filter(n => n.id !== id)
             )
         } catch (error) {
             console.error("Failed to delete notification:", error)
         } finally {
-            setDeleteDialogOpen(false)
-            setNotificationToDelete(null)
+            setDeletePopoverOpen(null)
         }
     }
 
     // Cancel delete
     const cancelDelete = () => {
-        setDeleteDialogOpen(false)
-        setNotificationToDelete(null)
+        setDeletePopoverOpen(null)
     }
 
     // Mark all notifications as read
@@ -264,15 +253,60 @@ export const NotificationBell = React.memo(() => {
                                                         </Button>
                                                     )}
 
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        onClick={(e) => handleDeleteClick(notification.id, e)}
-                                                        className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/20 rounded-xl transition-all duration-200"
-                                                        title="Delete notification"
-                                                    >
-                                                        <Trash2 className="h-3.5 w-3.5" />
-                                                    </Button>
+                                                    <Popover open={deletePopoverOpen === notification.id} onOpenChange={(open) => {
+                                                        if (!open) {
+                                                            setDeletePopoverOpen(null)
+                                                        }
+                                                    }}>
+                                                        <PopoverTrigger asChild>
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="sm"
+                                                                onClick={(e) => handleDeleteClick(notification.id, e)}
+                                                                className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/20 rounded-xl transition-all duration-200"
+                                                                title="Delete notification"
+                                                            >
+                                                                <Trash2 className="h-3.5 w-3.5" />
+                                                            </Button>
+                                                        </PopoverTrigger>
+                                                        <PopoverContent
+                                                            className="w-72 p-4 rounded-2xl shadow-lg border bg-white dark:bg-gray-900"
+                                                            side="left"
+                                                            align="center"
+                                                            sideOffset={8}
+                                                            onOpenAutoFocus={(e) => e.preventDefault()}
+                                                            onCloseAutoFocus={(e) => e.preventDefault()}
+                                                        >
+                                                            <div className="space-y-3">
+                                                                <div>
+                                                                    <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-1">
+                                                                        Delete Notification
+                                                                    </h4>
+                                                                    <p className="text-xs text-muted-foreground">
+                                                                        Are you sure you want to delete this notification? This action cannot be undone.
+                                                                    </p>
+                                                                </div>
+                                                                <div className="flex justify-end gap-2">
+                                                                    <Button
+                                                                        variant="outline"
+                                                                        size="sm"
+                                                                        onClick={cancelDelete}
+                                                                        className="h-8 px-3 text-xs rounded-md"
+                                                                    >
+                                                                        Cancel
+                                                                    </Button>
+                                                                    <Button
+                                                                        variant="destructive"
+                                                                        size="sm"
+                                                                        onClick={() => confirmDeleteNotification(notification.id)}
+                                                                        className="h-8 px-3 text-xs rounded-md"
+                                                                    >
+                                                                        Delete
+                                                                    </Button>
+                                                                </div>
+                                                            </div>
+                                                        </PopoverContent>
+                                                    </Popover>
                                                 </div>
 
                                                 {!notification.isRead && (
@@ -311,37 +345,6 @@ export const NotificationBell = React.memo(() => {
                     </>
                 )}
             </DropdownMenuContent>
-
-            {/* Delete confirmation dialog */}
-            <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-                <AlertDialogContent className="sm:max-w-[425px]">
-                    <AlertDialogHeader>
-                        <AlertDialogTitle className="text-lg font-semibold">
-                            Delete Notification
-                        </AlertDialogTitle>
-                        <AlertDialogDescription className="text-sm text-muted-foreground">
-                            Are you sure you want to delete this notification? This action cannot be undone.
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-
-                    <div className="flex justify-end gap-2">
-                        <AlertDialogCancel asChild>
-                            <Button variant="outline" className="h-10 px-4 rounded-md">
-                                Cancel
-                            </Button>
-                        </AlertDialogCancel>
-                        <AlertDialogAction asChild>
-                            <Button
-                                variant="destructive"
-                                className="h-10 px-4 rounded-md"
-                                onClick={confirmDeleteNotification}
-                            >
-                                Delete
-                            </Button>
-                        </AlertDialogAction>
-                    </div>
-                </AlertDialogContent>
-            </AlertDialog>
         </DropdownMenu>
     )
 })

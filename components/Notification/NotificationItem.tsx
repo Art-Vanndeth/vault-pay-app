@@ -6,15 +6,10 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Check, Trash2, AlertCircle, CheckCircle, Info, AlertTriangle } from "lucide-react"
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog"
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 import { formatRelativeTime } from "@/utils/format"
 import type { Notification, NotificationActions } from "@/types/notification"
 
@@ -50,15 +45,15 @@ interface NotificationItemProps {
 export function NotificationItem({ notification, actions, isFirst = false }: NotificationItemProps) {
   const config = typeConfig[notification.type] || typeConfig.info
   const IconComponent = config.icon
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [deletePopoverOpen, setDeletePopoverOpen] = useState(false)
 
   const handleDeleteConfirm = () => {
     actions.remove(notification.id)
-    setDeleteDialogOpen(false)
+    setDeletePopoverOpen(false)
   }
 
   const handleDeleteCancel = () => {
-    setDeleteDialogOpen(false)
+    setDeletePopoverOpen(false)
   }
 
   return (
@@ -124,8 +119,8 @@ export function NotificationItem({ notification, actions, isFirst = false }: Not
               </Button>
             )}
 
-            <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-              <AlertDialogTrigger asChild>
+            <Popover open={deletePopoverOpen} onOpenChange={setDeletePopoverOpen}>
+              <PopoverTrigger asChild>
                 <Button
                   variant="ghost"
                   size="sm"
@@ -133,39 +128,43 @@ export function NotificationItem({ notification, actions, isFirst = false }: Not
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent className="sm:max-w-[425px]">
-                <AlertDialogHeader>
-                  <AlertDialogTitle className="text-lg font-semibold">
-                    Delete Notification
-                  </AlertDialogTitle>
-                  <AlertDialogDescription className="text-sm text-muted-foreground">
-                    Are you sure you want to delete this notification? This action cannot be undone.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-
-                <div className="flex justify-end gap-2">
-                  <AlertDialogCancel asChild>
+              </PopoverTrigger>
+              <PopoverContent
+                className="w-80 p-4 rounded-2xl shadow-lg border bg-white dark:bg-gray-900"
+                side="left"
+                align="center"
+                sideOffset={8}
+              >
+                <div className="space-y-3">
+                  <div>
+                    <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-1">
+                      Delete Notification
+                    </h4>
+                    <p className="text-xs text-muted-foreground">
+                      Are you sure you want to delete this notification? This action cannot be undone.
+                    </p>
+                  </div>
+                  <div className="flex justify-end gap-2">
                     <Button
                       variant="outline"
+                      size="sm"
                       onClick={handleDeleteCancel}
-                      className="h-10 px-4 rounded-md"
+                      className="h-8 px-3 text-xs rounded-md"
                     >
                       Cancel
                     </Button>
-                  </AlertDialogCancel>
-                  <AlertDialogAction asChild>
                     <Button
                       variant="destructive"
+                      size="sm"
                       onClick={handleDeleteConfirm}
-                      className="h-10 px-4 rounded-md"
+                      className="h-8 px-3 text-xs rounded-md"
                     >
                       Delete
                     </Button>
-                  </AlertDialogAction>
+                  </div>
                 </div>
-              </AlertDialogContent>
-            </AlertDialog>
+              </PopoverContent>
+            </Popover>
           </div>
         </div>
       </CardContent>
