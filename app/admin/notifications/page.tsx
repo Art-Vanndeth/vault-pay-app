@@ -52,21 +52,34 @@ export default function NotificationsPage() {
     useEffect(() => {
         const wsService = new WebSocketService();
 
-        wsService.onNotification((notification) => {
+        // Set up WebSocket event handlers
+        wsService.onNotification((notification: Notification) => {
             setNotifications((prev) => [notification, ...prev]); // Add new notification at the top
         });
 
+        // Handle connection status
+        wsService.onConnect(() => {
+            console.log('Connected to WebSocket for notifications page')
+        });
+
+        wsService.onDisconnect(() => {
+            console.log('Disconnected from WebSocket for notifications page')
+        });
+
+        // Connect to WebSocket
         wsService.connect();
 
         // Fetch initial notifications
-        wsService.fetchInitialNotifications("desc").then((initialNotifications) => {
+        wsService.fetchInitialNotifications("desc").then((initialNotifications: Notification[]) => {
             setNotifications(initialNotifications);
+        }).catch((error) => {
+            console.error("Failed to fetch initial notifications:", error);
         });
 
         return () => {
             wsService.disconnect();
         };
-    }, [1]);
+    }, []);
 
     return (
         <div className="space-y-6">
@@ -80,7 +93,7 @@ export default function NotificationsPage() {
                 {unreadCount > 0 && (
                     <Button onClick={markAllAsRead} variant="outline">
                         <CheckCheck className="mr-2 h-4 w-4"/>
-                        Mark All Read
+                        Mark All Read ({unreadCount})
                     </Button>
                 )}
             </div>
