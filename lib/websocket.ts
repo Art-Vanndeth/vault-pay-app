@@ -8,6 +8,8 @@ export class WebSocketService {
   private subscriptionCallback: ((notification: Notification) => void) | null = null;
   private connectCallback: (() => void) | null = null;
   private disconnectCallback: (() => void) | null = null;
+  private paymentSuccessCallback: ((paymentData: any) => void) | null = null;
+  private paymentReceivedCallback: ((paymentData: any) => void) | null = null;
 
   constructor(wsUrl: string = 'http://localhost:8888/ws') {
 
@@ -69,11 +71,43 @@ export class WebSocketService {
     this.disconnectCallback = callback;
   }
 
+  // Payment event handlers
+  onPaymentSuccess(callback: (paymentData: any) => void): void {
+    this.paymentSuccessCallback = callback;
+    if (this.client.connected) {
+      this.subscribeToPayments();
+    }
+  }
+
+  onPaymentReceived(callback: (paymentData: any) => void): void {
+    this.paymentReceivedCallback = callback;
+    if (this.client.connected) {
+      this.subscribeToPayments();
+    }
+  }
+
   private subscribe(): void {
     if (this.subscriptionCallback) {
       this.client.subscribe(`/topic/notifications`, (message) => {
         const notification = JSON.parse(message.body) as Notification;
         this.subscriptionCallback!(notification);
+      });
+    }
+    this.subscribeToPayments();
+  }
+
+  private subscribeToPayments(): void {
+    if (this.paymentSuccessCallback) {
+      this.client.subscribe(`/topic/payments/success`, (message) => {
+        const paymentData = JSON.parse(message.body);
+        this.paymentSuccessCallback!(paymentData);
+      });
+    }
+
+    if (this.paymentReceivedCallback) {
+      this.client.subscribe(`/topic/payments/received`, (message) => {
+        const paymentData = JSON.parse(message.body);
+        this.paymentReceivedCallback!(paymentData);
       });
     }
   }
