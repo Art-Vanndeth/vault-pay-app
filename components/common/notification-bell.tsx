@@ -136,7 +136,7 @@ export const NotificationBell = React.memo(() => {
 
                     {unreadCount > 0 && (
                         <Badge className="absolute -top-2 -right-2 h-6 w-6 flex items-center justify-center p-0 text-xs font-bold bg-gradient-to-r from-pink-500 to-pink-600 border-2 border-white dark:border-gray-900 shadow-lg animate-bounce">
-                            {unreadCount > 99 ? "99+" : unreadCount}
+                            {unreadCount > 9 ? "9+" : unreadCount}
                         </Badge>
                     )}
 

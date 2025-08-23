@@ -1,11 +1,10 @@
 "use client"
 
 import React, {useEffect, useState} from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import {formatCurrency, formatDate, formatDateTransaction, formatRelativeTime} from "@/utils/format"
+import {formatCurrency, formatDateTransaction} from "@/utils/format"
 import type { Transaction } from "@/types/transaction"
-import { Wifi, WifiOff } from "lucide-react"
 import {transactionService} from "@/lib/api-client";
 import toast from "react-hot-toast";
 
@@ -24,8 +23,15 @@ export const TransactionsTable = React.memo(() => {
         async function fetchTransactions() {
             try {
                 const transactions = await transactionService.getAllTransactions()
-                setTransactions(transactions)
-                console.log("TRANSACTIONS", transactions)
+                // Sort transactions by updatedAt in descending order (newest first)
+                const sortedTransactions = transactions.sort((a: Transaction, b: Transaction) => {
+                    // Convert array format [year, month, day, hour, minute, second, nanosecond] to timestamp
+                    const dateA = new Date(a.updatedAt[0], a.updatedAt[1] - 1, a.updatedAt[2], a.updatedAt[3], a.updatedAt[4], a.updatedAt[5]).getTime()
+                    const dateB = new Date(b.updatedAt[0], b.updatedAt[1] - 1, b.updatedAt[2], b.updatedAt[3], b.updatedAt[4], b.updatedAt[5]).getTime()
+                    return dateB - dateA
+                })
+                setTransactions(sortedTransactions)
+                console.log("TRANSACTIONS", sortedTransactions)
             } catch (error: any) {
                 toast.error("Failed to load transactions")
             }

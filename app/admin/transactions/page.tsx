@@ -28,7 +28,6 @@ const typeColors = {
 export default function TransactionsPage() {
     const [searchTerm, setSearchTerm] = useState("")
     const [statusFilter, setStatusFilter] = useState("all")
-    const [dateRange, setDateRange] = useState("all")
     const [transactions, setTransactions] = useState<Transaction[]>([])
 
     // Fetch accounts from API on mount
@@ -36,8 +35,15 @@ export default function TransactionsPage() {
         async function fetchTransactions() {
             try {
                 const transactions = await transactionService.getAllTransactions()
-                setTransactions(transactions)
-                console.log("TRANSACTIONS", transactions)
+                // Sort transactions by updatedAt in descending order (newest first)
+                const sortedTransactions = transactions.sort((a: Transaction, b: Transaction) => {
+                    // Convert array format [year, month, day, hour, minute, second, nanosecond] to timestamp
+                    const dateA = new Date(a.updatedAt[0], a.updatedAt[1] - 1, a.updatedAt[2], a.updatedAt[3], a.updatedAt[4], a.updatedAt[5]).getTime()
+                    const dateB = new Date(b.updatedAt[0], b.updatedAt[1] - 1, b.updatedAt[2], b.updatedAt[3], b.updatedAt[4], b.updatedAt[5]).getTime()
+                    return dateB - dateA
+                })
+                setTransactions(sortedTransactions)
+                console.log("TRANSACTIONS", sortedTransactions)
             } catch (error: any) {
                 toast.error("Failed to load transactions")
             }

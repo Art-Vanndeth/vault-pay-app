@@ -34,9 +34,10 @@ export const formatDate = (dateString: string): string => {
 }
 
 export const formatDateTransaction = (dateArray: number[]): string => {
-    // Convert [year, month, day, hour, minute, second, ms] to Date
-    // Note: month is 1-based in input, but 0-based in JS Date
-    const [year, month, day, hour, minute, second, ms] = dateArray
+    // Convert [year, month, day, hour, minute, second, nanosecond] to Date
+    // Note: month is 1-based in input, but 0-based in JS Date; nanoseconds -> milliseconds
+    const [year, month, day, hour, minute, second, nano] = dateArray
+    const ms = Math.floor((nano ?? 0) / 1_000_000)
     const date = new Date(year, month - 1, day, hour, minute, second, ms)
     return new Intl.DateTimeFormat("en-US", {
         year: "numeric",

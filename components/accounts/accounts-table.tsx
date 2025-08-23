@@ -41,7 +41,11 @@ export function AccountsTable() {
         async function fetchAccounts() {
             try {
                 const accounts = await accountService.getAllAccounts()
-                setAccounts(accounts)
+                // Sort by updatedAt desc (newest first)
+                const sorted = accounts.sort((a: Account, b: Account) =>
+                    new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+                )
+                setAccounts(sorted)
             } catch (error: any) {
                 toast.error("Failed to load accounts")
             }
@@ -55,7 +59,9 @@ export function AccountsTable() {
         const searchLower = searchTerm.toLowerCase()
         const matchesSearch =
             account.accountNumber.toLowerCase().includes(searchLower) ||
-            account.accountHolderName.toLowerCase().includes(searchLower)
+            account.accountHolderName.toLowerCase().includes(searchLower) ||
+            account.status.toLowerCase().includes(searchLower) ||
+            account.type.toLowerCase().includes(searchLower)
         const matchesStatus = statusFilter === "all" || account.status === statusFilter
         return matchesSearch && matchesStatus
     })
@@ -64,10 +70,10 @@ export function AccountsTable() {
         const account = accounts.find((acc) => acc.accountNumber === accountNumber)
         if (!account) return
 
-        const newStatus: Account["status"] = currentStatus === "ACTIVE" ? "FROZEN" : "ACTIVE"
-        const action = newStatus === "FROZEN" ? "FREEZE" : "UNFREEZE"
+        // If account is ACTIVE, freeze it. If it's any other status, activate it
+        const action = currentStatus === "ACTIVE" ? "FREEZE" : "UNFREEZE"
 
-        // Open confirmation dialog instead of window.confirm
+        // Open confirmation dialog
         setSelectedAccount(account)
         setPendingAction(action)
         setConfirmDialogOpen(true)
@@ -80,6 +86,7 @@ export function AccountsTable() {
             if (pendingAction === "FREEZE") {
                 await accountService.freezeAccount(selectedAccount.accountNumber)
             } else {
+                // For any non-ACTIVE status, use unfreeze to activate
                 await accountService.unfreezeAccount(selectedAccount.accountNumber)
             }
 
@@ -90,12 +97,13 @@ export function AccountsTable() {
                     : acc
             ))
 
-            toast.success(`Account ${pendingAction}d successfully`)
+            const actionText = pendingAction === "FREEZE" ? "frozen" : "activated"
+            toast.success(`Account ${actionText} successfully`)
         } catch (error: any) {
             const errorMessage =
                 error.response?.data?.error?.reason ||
                 error.response?.data?.responseMessage ||
-                `Failed to ${pendingAction} account`
+                `Failed to ${pendingAction === "FREEZE" ? "freeze" : "activate"} account`
             toast.error(errorMessage)
         } finally {
             setConfirmDialogOpen(false)
@@ -184,30 +192,28 @@ export function AccountsTable() {
                                         <span className="text-sm text-muted-foreground">{formatDate(account.updatedAt)}</span>
                                     </td>
                                     <td className="p-4">
-                                        {account.status !== "CLOSED" && (
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={() => handleFreezeUnfreeze(account.accountNumber, account.status)}
-                                                className={
-                                                    account.status === "FROZEN"
-                                                        ? "text-success hover:text-success"
-                                                        : "text-destructive hover:text-destructive"
-                                                }
-                                            >
-                                                {account.status === "FROZEN" ? (
-                                                    <>
-                                                        <Play className="mr-1 h-3 w-3" />
-                                                        Unfreeze
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <Freeze className="mr-1 h-3 w-3" />
-                                                        Freeze
-                                                    </>
-                                                )}
-                                            </Button>
-                                        )}
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => handleFreezeUnfreeze(account.accountNumber, account.status)}
+                                            className={
+                                                account.status !== "ACTIVE"
+                                                    ? "text-success hover:text-success"
+                                                    : "text-destructive hover:text-destructive"
+                                            }
+                                        >
+                                            {account.status !== "ACTIVE" ? (
+                                                <>
+                                                    <Play className="mr-1 h-3 w-3" />
+                                                    Activate
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Freeze className="mr-1 h-3 w-3" />
+                                                    Freeze
+                                                </>
+                                            )}
+                                        </Button>
                                     </td>
                                 </tr>
                             ))}
@@ -227,12 +233,12 @@ export function AccountsTable() {
                 <AlertDialogContent className="sm:max-w-[500px]">
                     <AlertDialogHeader>
                         <AlertDialogTitle className="text-lg font-semibold">
-                            {pendingAction === "FREEZE" ? "Freeze Account" : "Unfreeze Account"}
+                            {pendingAction === "FREEZE" ? "Freeze Account" : "Activate Account"}
                         </AlertDialogTitle>
                         <AlertDialogDescription className="text-sm text-muted-foreground">
                             {selectedAccount && (
                                 <>
-                                    Are you sure you want to {pendingAction?.toLowerCase()} account{" "}
+                                    Are you sure you want to {pendingAction === "FREEZE" ? "freeze" : "activate"} account{" "}
                                     <span className="font-medium text-foreground">
                                         {selectedAccount.accountNumber}
                                     </span>{" "}
@@ -277,7 +283,7 @@ export function AccountsTable() {
                                 ) : (
                                     <>
                                         <Play className="mr-2 h-4 w-4" />
-                                        Unfreeze Account
+                                        Activate Account
                                     </>
                                 )}
                             </Button>
