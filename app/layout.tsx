@@ -6,9 +6,9 @@ import "./globals.css"
 import { Providers } from "./providers"
 
 export const metadata: Metadata = {
-  title: "SecurePay Banking",
+  title: "FlashFin Banking",
   description: "Premium Digital Banking & Payment Solutions",
-  generator: "v0.app",
+  generator: "FlashFin",
 }
 
 export default function RootLayout({

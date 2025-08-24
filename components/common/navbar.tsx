@@ -40,9 +40,9 @@ export function Navbar({ onMenuClick, showMenuButton = false }: NavbarProps) {
               }}
           >
               <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                  <span className="text-primary-foreground font-bold text-sm">VP</span>
+                  <span className="text-primary-foreground font-bold text-sm">FIN</span>
               </div>
-              <span className="font-semibold text-lg text-foreground">VaultPay</span>
+              <span className="font-semibold text-lg text-foreground">FlashFin</span>
           </div>
       </div>
 
