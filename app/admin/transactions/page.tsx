@@ -43,7 +43,6 @@ export default function TransactionsPage() {
                     return dateB - dateA
                 })
                 setTransactions(sortedTransactions)
-                console.log("TRANSACTIONS", sortedTransactions)
             } catch (error: any) {
                 toast.error("Failed to load transactions")
             }
