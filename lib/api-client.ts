@@ -78,6 +78,22 @@ export const accountService = {
         const response = await apiClient.patch(`/api/accounts/${accountNumber}/unfreeze`)
         return response.data
     },
+
+    async getTotalAccounts() {
+        const response = await apiClient.get("/api/accounts/total")
+        return response.data
+    },
+
+    async getTotalVolume() {
+        const response = await apiClient.get("/api/accounts/volume")
+        return response.data
+    },
+
+    async getActiveAccount() {
+        const response = await apiClient.get("/api/accounts/active")
+        return response.data
+    }
+
 }
 
 export const transactionService = {
@@ -85,6 +101,18 @@ export const transactionService = {
         const response = await apiClient.get("/api/transactions")
         return response.data
     },
+
+    async getTotalTransactions() {
+        const response = await apiClient.get("/api/transactions/total")
+        return response.data
+    },
+
+    async getInitiateTransactions() {
+        const response = await apiClient.get("/api/transactions/initiated")
+        return response.data
+    }
+
+
 }
 
 export const notificationService = {
@@ -92,10 +120,6 @@ export const notificationService = {
         const response = await apiClient.get("/api/notifications")
         return response.data
     },
-
-    // async markAsRead(id: string, status: boolean) {
-    //     await apiClient.patch(`/api/notifications/${id}/status`, {read: status})
-    // },
 
     async markAsRead(id: string, status: boolean) {
         await apiClient.patch(`/api/notifications/${id}/status?read=${status}`)

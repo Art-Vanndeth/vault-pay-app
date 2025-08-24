@@ -5,17 +5,74 @@ import { VolumeChart } from "@/components/dashboard/volume-chart"
 import { StatusPieChart } from "@/components/dashboard/status-pie-chart"
 import { TransactionsTable } from "@/components/dashboard/transactions-table"
 import { Users, CreditCard, DollarSign, Clock, Activity } from "lucide-react"
+import { useEffect, useState } from "react"
+import { accountService, transactionService } from "@/lib/api-client"
 
-// Mock data - will be replaced with real API calls
-const statsData = {
-  totalAccounts: 1247,
-  totalTransactions: 8934,
-  totalVolume: 2847392.5,
-  pendingTransactions: 23,
-  activeAccounts: 1189,
+// Normalize API values that may be number | string | { total: number | string }
+const toNum = (v: unknown): number => {
+  if (typeof v === "number") return v
+  if (typeof v === "string") {
+    const n = Number(v)
+    return Number.isFinite(n) ? n : 0
+  }
+  if (v && typeof v === "object" && "total" in (v as Record<string, unknown>)) {
+    return toNum((v as any).total)
+  }
+  return 0
 }
 
 export default function AdminDashboard() {
+  const [statsData, setStatsData] = useState({
+    totalAccounts: 0,
+    totalTransactions: 0,
+    totalVolume: 0,
+    pendingTransactions: 0,
+    activeAccounts: 0,
+  })
+
+  useEffect(() => {
+    let isMounted = true
+
+    async function fetchStats() {
+      try {
+        const [totalAccountsRes, totalTxRes, totalVolumeRes, initiatedRes, activeAccountsRes] = await Promise.all([
+          accountService.getTotalAccounts(),
+          transactionService.getTotalTransactions(),
+          accountService.getTotalVolume(),
+          transactionService.getInitiateTransactions(),
+          accountService.getActiveAccount(),
+        ])
+
+        const totalAccounts = toNum(totalAccountsRes)
+        const totalTransactions = toNum(totalTxRes)
+        const totalVolume = toNum(totalVolumeRes)
+        const pendingTransactions = Array.isArray(initiatedRes) ? initiatedRes.length : toNum(initiatedRes)
+        const activeAccounts = toNum(activeAccountsRes)
+
+        if (isMounted) {
+          setStatsData({
+            totalAccounts,
+            totalTransactions,
+            totalVolume,
+            pendingTransactions,
+            activeAccounts,
+          })
+        }
+      } catch (err) {
+        // Silently fail for now; could add toast/alert if desired
+        if (isMounted) {
+          setStatsData((prev) => ({ ...prev }))
+        }
+      }
+    }
+
+    fetchStats()
+
+    return () => {
+      isMounted = false
+    }
+  }, [])
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -42,7 +99,7 @@ export default function AdminDashboard() {
         />
         <StatsCard
           title="Total Volume"
-          value={`$${(statsData.totalVolume / 1000000).toFixed(1)}M`}
+          value={`$${(statsData.totalVolume / 1000).toFixed(1)}K`}
           change="+15% from last month"
           changeType="positive"
           icon={DollarSign}
